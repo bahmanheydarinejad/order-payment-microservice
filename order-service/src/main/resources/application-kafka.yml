@@ -1,0 +1,33 @@
+spring:
+  kafka:
+    retry:
+      topic:
+        enabled: true
+    admin:
+      auto-create: true
+      fail-fast: true
+    listener:
+      ack-mode: record
+      concurrency: 3
+    consumer:
+      auto-offset-reset: latest
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring:
+          deserializer:
+            key:
+              delegate:
+                class: org.springframework.kafka.support.serializer.StringDeserializer
+            value:
+              delegate:
+                class: org.springframework.kafka.support.serializer.JsonDeserializer
+          json:
+            trusted:
+              packages: '*'
+            add:
+              type:
+                headers: false
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    bootstrap-servers: localhost:29092

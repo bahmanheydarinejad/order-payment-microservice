@@ -1,0 +1,39 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: order-service
+  datasource:
+    url: jdbc:postgresql://localhost:5433/orderdb
+    username: order
+    password: order
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate.jdbc.time_zone: UTC
+  flyway:
+    enabled: true
+  main:
+    banner-mode: off
+  profiles:
+    include: kafka
+
+eureka:
+  instance:
+    health-check-url-path: /actuator/health
+    status-page-url-path: /actuator/info
+    instance-id: ${spring.application.name}:${server.port}:${random.value}
+  client:
+    serviceUrl:
+      registry-fetch-interval-seconds: 5
+      defaultZone: http://localhost:8761/eureka/
+
+management:
+  endpoints.web.exposure.include: health,info
+
+
+springdoc:
+  swagger-ui:
+    path: /documents

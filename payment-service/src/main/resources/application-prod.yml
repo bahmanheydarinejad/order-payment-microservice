@@ -1,0 +1,13 @@
+server:
+  port: 8082
+
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres-payment:5432/paymentdb
+  kafka:
+    bootstrap-servers: kafka:9092
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://discovery:8761/eureka/

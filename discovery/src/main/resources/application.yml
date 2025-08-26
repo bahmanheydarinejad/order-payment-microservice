@@ -1,0 +1,14 @@
+server:
+  port: 8761
+spring:
+  application:
+    name: discovery
+  main:
+    banner-mode: off
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    registry-fetch-interval-seconds: 5
+management:
+  endpoints.web.exposure.include: health,info

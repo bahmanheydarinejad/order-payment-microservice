@@ -1,0 +1,38 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: payment-service
+  datasource:
+    url: jdbc:postgresql://localhost:5434/paymentdb
+    username: payment
+    password: payment
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate.jdbc.time_zone: UTC
+  flyway:
+    enabled: true
+  main:
+    banner-mode: off
+  profiles:
+    include: kafka
+
+eureka:
+  instance:
+    health-check-url-path: /actuator/health
+    status-page-url-path: /actuator/info
+    instance-id: ${spring.application.name}:${server.port}:${random.value}
+  client:
+    serviceUrl:
+      registry-fetch-interval-seconds: 5
+      defaultZone: http://localhost:8761/eureka/
+
+management:
+  endpoints.web.exposure.include: health,info
+
+springdoc:
+  swagger-ui:
+    path: /documents

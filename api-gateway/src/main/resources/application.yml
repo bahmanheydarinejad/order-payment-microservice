@@ -1,0 +1,35 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          default-filters:
+            - RemoveRequestHeader=Cookie
+            - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
+            - PreserveHostHeader
+          routes:
+            - id: order-service
+              predicates:
+                - Path=/orders/**
+              uri: lb://order-service
+
+            - id: payment-service
+              predicates:
+                - Path= /payments/**
+              uri: lb://payment-service
+
+management:
+  endpoints.web.exposure.include: health,info
+eureka:
+  instance:
+    health-check-url-path: /actuator/health
+    status-page-url-path: /actuator/info
+    instance-id: ${spring.application.name}:${server.port}:${random.value}
+  client:
+    registry-fetch-interval-seconds: 5
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/

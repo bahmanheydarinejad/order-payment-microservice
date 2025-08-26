@@ -1,0 +1,121 @@
+version: "3.9"
+services:
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.8.0
+    container_name: zookeeper
+    hostname: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+      micro-net:
+
+  kafka:
+    image: confluentinc/cp-kafka:7.8.0
+    depends_on: [ zookeeper ]
+    container_name: kafka
+    hostname: kafka
+    ports: [ "9092:9092" , "29092:29092" ]
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+    networks:
+      micro-net:
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    hostname: kafka-ui
+    depends_on:
+      - kafka
+    ports: [ "9091:8080" ]
+    environment:
+      KAFKA_CLUSTERS_0_NAME: "microservices"
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka:9092"
+      KAFKA_CLUSTERS_0_ZOOKEEPER: "zookeeper:2181"
+    networks:
+      micro-net:
+
+  postgres-order:
+    image: postgres:17
+    container_name: postgres-order
+    hostname: postgres-order
+    environment:
+      POSTGRES_DB: orderdb
+      POSTGRES_USER: order
+      POSTGRES_PASSWORD: order
+    ports: [ "5433:5432" ]
+    networks:
+      micro-net:
+
+  postgres-payment:
+    image: postgres:17
+    container_name: postgres-payment
+    hostname: postgres-payment
+    environment:
+      POSTGRES_DB: paymentdb
+      POSTGRES_USER: payment
+      POSTGRES_PASSWORD: payment
+    ports: [ "5434:5432" ]
+    networks:
+      micro-net:
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "bahmanheydarinejad@gmail.com"
+      PGADMIN_DEFAULT_PASSWORD: "bahmanheydarinejad"
+    ports: [ "5432:80" ]
+    networks:
+      micro-net:
+
+  discovery:
+    build: ./discovery
+    image: example/discovery:1.0.0
+    hostname: discovery
+    ports: [ "8761:8761" ]
+    networks:
+      micro-net:
+
+  api-gateway:
+    build: ./api-gateway
+    image: example/api-gateway:1.0.0
+    hostname: api-gateway
+    depends_on: [ discovery ]
+    ports: [ "8080:8080" ]
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+    networks:
+      micro-net:
+
+  order-service:
+    build: ./order-service
+    image: example/order-service:1.0.0
+    depends_on: [ discovery, kafka, postgres-order ]
+    ports: [ "8081:8081" ]
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+    networks:
+      micro-net:
+
+  payment-service:
+    build: ./payment-service
+    image: example/payment-service:1.0.0
+    depends_on: [ discovery, kafka, postgres-payment ]
+    ports: [ "8082:8082" ]
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+    networks:
+      micro-net:
+
+networks:
+  micro-net:
